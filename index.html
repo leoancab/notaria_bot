@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Notaría - Asistentes Virtuales</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+height:100vh;
+display:flex;
+}
+
+/* sidebar */
+
+.sidebar{
+width:250px;
+background:#1e293b;
+color:white;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.bot{
+padding:12px;
+background:#334155;
+cursor:pointer;
+border-radius:6px;
+}
+
+.bot:hover{
+background:#475569;
+}
+
+/* chat */
+
+.chat-container{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.chat-header{
+background:#f1f5f9;
+padding:15px;
+font-weight:bold;
+}
+
+.chat-messages{
+flex:1;
+padding:20px;
+overflow-y:auto;
+background:#f8fafc;
+}
+
+.message{
+margin-bottom:10px;
+}
+
+.user{
+text-align:right;
+}
+
+.bot-message{
+text-align:left;
+}
+
+.chat-input{
+display:flex;
+padding:10px;
+background:#e2e8f0;
+}
+
+.chat-input input{
+flex:1;
+padding:10px;
+border:none;
+border-radius:5px;
+}
+
+.chat-input button{
+margin-left:10px;
+padding:10px 15px;
+border:none;
+background:#2563eb;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<div class="bot" onclick="selectBot('general')">
+Asistente General
+</div>
+
+<div class="bot" onclick="selectBot('escrituras')">
+Bot de Escrituras
+</div>
+
+<div class="bot" onclick="selectBot('poderes')">
+Bot de Poderes
+</div>
+
+<div class="bot" onclick="selectBot('asesor')">
+Asesor Notarial
+</div>
+
+</div>
+
+
+<div class="chat-container">
+
+<div class="chat-header" id="chatTitle">
+Asistente General
+</div>
+
+<div class="chat-messages" id="messages">
+</div>
+
+<div class="chat-input">
+
+<input id="inputMessage" placeholder="Escribe tu pregunta..." />
+
+<button onclick="sendMessage()">Enviar</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+let currentBot = "general"
+
+const botNames = {
+general:"Asistente General",
+escrituras:"Bot de Escrituras",
+poderes:"Bot de Poderes",
+asesor:"Asesor Notarial"
+}
+
+function selectBot(bot){
+
+currentBot = bot
+
+document.getElementById("chatTitle").innerText = botNames[bot]
+
+document.getElementById("messages").innerHTML = ""
+
+}
+
+
+function addMessage(text,type){
+
+const div = document.createElement("div")
+
+div.className = "message " + type
+
+div.innerText = text
+
+document.getElementById("messages").appendChild(div)
+
+}
+
+
+async function sendMessage(){
+
+const input = document.getElementById("inputMessage")
+
+const text = input.value
+
+if(!text) return
+
+addMessage(text,"user")
+
+input.value=""
+
+try{
+
+const response = await fetch("http://localhost:5678/webhook/chatbot",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+message:text,
+bot:currentBot
+})
+
+})
+
+const data = await response.json()
+
+addMessage(data.reply,"bot-message")
+
+}catch(err){
+
+addMessage("Error conectando con el servidor","bot-message")
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
